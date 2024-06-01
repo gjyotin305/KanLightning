@@ -28,11 +28,6 @@ test_loader = DataLoader(dataset2, batch_size=32, num_workers=15)
 
 print(dataset1.__len__())
 
-for x, y in train_loader:
-    print(x.shape, y.shape)
-    break
-
-
 class KANLightning(pl.LightningModule):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()

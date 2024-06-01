@@ -1,7 +1,8 @@
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from efficient_kan import KANLinear 
+from .efficient_kan import KANLinear 
 # ROPE 
 
 
@@ -163,28 +164,26 @@ class KANFormer(nn.Module):
 
 # Testing the model
 
-import torch
-import torch.nn as nn
-import numpy as np
 
-# Define the model
-model = KANFormer(vocabulary_size=100, hidden_size=128, num_heads=8, window_size=16, d_ff=256, num_experts=4, n_experts_per_token=2, n_blocks=6, max_seq_len=512)
+if __name__ == "__main__":
+    # Define the model
+    model = KANFormer(vocabulary_size=20000, hidden_size=32, num_heads=2, window_size=4, d_ff=64, num_experts=4, n_experts_per_token=2, n_blocks=6, max_seq_len=128)
 
-# Create a random input tensor
-input_seq_len = 32
-input_tensor = torch.randint(0, 100, (1, input_seq_len))  # batch size 1, sequence length 32, vocab size 100
+    # Create a random input tensor
+    input_seq_len = 128
+    input_tensor = torch.randint(0, 20000, (1, input_seq_len))  # batch size 1, sequence length 32, vocab size 100
 
-# Move the model to a device (e.g. GPU or CPU)
-device = "cpu"
-model.to(device)
-input_tensor = input_tensor.to(device)
+    # Move the model to a device (e.g. GPU or CPU)
+    device = "cpu"
+    model.to(device)
+    input_tensor = input_tensor.to(device)
+    print(input_tensor.shape)
+    # Run the input through the model
+    output = model(input_tensor)
 
-# Run the input through the model
-output = model(input_tensor)
+    # Check the output shape
+    print(output.shape)  # should be (1, 128, 20000)
 
-# Check the output shape
-print(output.shape)  # should be (1, 32, 100)
-
-# Check if the output is a valid probability distribution
-output_softmax = torch.softmax(output, dim=-1)
-print(torch.allclose(output_softmax.sum(dim=-1), torch.ones_like(output_softmax.sum(dim=-1))))  # should be True
+    # Check if the output is a valid probability distribution
+    output_softmax = torch.softmax(output, dim=-1)
+    print(torch.allclose(output_softmax.sum(dim=-1), torch.ones_like(output_softmax.sum(dim=-1))))  # should be True
