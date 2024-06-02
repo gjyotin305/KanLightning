@@ -50,7 +50,7 @@ class NER_ConLL(Dataset):
 
         torch_data_x = self.vocab(sample_data_x) 
 
-        return torch.LongTensor(torch_data_x), torch.LongTensor(sample_data_y)
+        return torch.IntTensor(torch_data_x), torch.LongTensor(sample_data_y)
 
          
 

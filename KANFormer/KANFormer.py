@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from .efficient_kan import KANLinear 
 # ROPE 
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 def get_rotation_matrix(dim: int, context_size: int, period: float) -> torch.Tensor: 
     freqs = 1.0 / (period ** (torch.arange(0, dim, 2) / dim)) 
@@ -26,6 +27,7 @@ class RoPE(nn.Module):
         keys_complex = torch.view_as_complex(keys) 
 
         rotation_matrix = self.rotation_matrix[:seq_length] 
+        rotation_matrix = rotation_matrix.to(device)
         queries_rotated = queries_complex * rotation_matrix 
 
         keys_rotated = keys_complex * rotation_matrix 
@@ -142,7 +144,7 @@ class KANBlock(nn.Module):
 # KANFORMER
 
 class KANFormer(nn.Module):
-    def __init__(self, vocabulary_size, hidden_size, num_heads, window_size, d_ff, num_experts, n_experts_per_token, n_blocks, max_seq_len):
+    def __init__(self, vocabulary_size, hidden_size, num_heads, window_size, d_ff, num_experts, n_experts_per_token, n_blocks, max_seq_len, num_tags_ner):
         super().__init__()
         self.embedding = nn.Embedding(vocabulary_size, hidden_size)
         head_dim = hidden_size // num_heads
@@ -151,7 +153,9 @@ class KANFormer(nn.Module):
             KANBlock(hidden_size, num_heads, window_size, d_ff, num_experts, n_experts_per_token, rotation_matrix) for _ in range(n_blocks)
         ])
 
-        self.out = nn.Linear(hidden_size, vocabulary_size)
+        self.out= nn.Sequential(
+            nn.Linear(hidden_size, num_tags_ner)
+        )
     
     def forward(self,x):
         x = self.embedding(x)
@@ -167,14 +171,13 @@ class KANFormer(nn.Module):
 
 if __name__ == "__main__":
     # Define the model
-    model = KANFormer(vocabulary_size=20000, hidden_size=32, num_heads=2, window_size=4, d_ff=64, num_experts=4, n_experts_per_token=2, n_blocks=6, max_seq_len=128)
+    model = KANFormer(vocabulary_size=20000, hidden_size=32, num_heads=2, window_size=4, d_ff=64, num_experts=4, n_experts_per_token=2, n_blocks=6, max_seq_len=128, num_tags_ner=9)
 
     # Create a random input tensor
     input_seq_len = 128
     input_tensor = torch.randint(0, 20000, (1, input_seq_len))  # batch size 1, sequence length 32, vocab size 100
 
     # Move the model to a device (e.g. GPU or CPU)
-    device = "cpu"
     model.to(device)
     input_tensor = input_tensor.to(device)
     print(input_tensor.shape)
