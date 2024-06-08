@@ -12,3 +12,8 @@ python KAN/train.py
 ```bash
 python train_ner.py
 ```
+
+## How to run inference on KanBert
+```bash
+python infer_bert.py
+```
