@@ -6,6 +6,7 @@ from KanBERT.kan_bert import KanBert
 import torch.nn as nn
 import torch
 import wandb
+from KanBERT.constants import device
 from dataset import IMDBDataset, load_imdb_data
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
@@ -42,8 +43,8 @@ class KanBertLightning(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        logits_clf = self.model.forward(x[0].to("cuda"), x[1].to("cuda"))
-        loss = self.loss(logits_clf, y.to("cuda"))
+        logits_clf = self.model.forward(x[0].to(device), x[1].to(device))
+        loss = self.loss(logits_clf, y.to(device))
         pred_logits = self.sigmoid(logits_clf)
 
         self.log({"train_loss":loss}, 
@@ -62,10 +63,10 @@ class KanBertLightning(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         
-        logits_clf = self.model.forward(x[0].to("cuda"), x[1].to("cuda"))
+        logits_clf = self.model.forward(x[0].to(device), x[1].to(device))
         
         pred_logits = self.sigmoid(logits_clf)
-        val_acc = accuracy(pred_logits, labels=y.to("cuda"))
+        val_acc = accuracy(pred_logits, labels=y.to(device))
         self.log({"val_acc": val_acc}, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):

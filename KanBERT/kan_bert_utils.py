@@ -39,14 +39,12 @@ class KanBertEmbeddings(nn.Module):
         input_shape = input_ids.size() 
         seq_length = input_shape[1]
 
-        pos_ids = torch.arange(seq_length, dtype=torch.long).to("cuda")
+        pos_ids = torch.arange(seq_length, dtype=torch.long).to(device)
         pos_ids = pos_ids.unsqueeze(0).expand_as(input_ids)
         token_type_embeddings = self.token_type_embeddings(token_type_ids)        
         input_embeds = self.word_embeddings(input_ids)
         pos_embeds = self.pos_embeddings(pos_ids)
-        input_embeds.to("cuda")
-        token_type_embeddings.to("cuda")
-        pos_embeds.to("cuda")
+        
         embeddings = input_embeds + token_type_embeddings + pos_embeds
         
         embeddings = self.layer_norm(embeddings)
