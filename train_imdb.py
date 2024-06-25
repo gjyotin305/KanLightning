@@ -8,10 +8,12 @@ import torch
 import wandb
 from dataset import IMDBDataset, load_imdb_data
 from torch.utils.data import DataLoader
+from lightning.pytorch.loggers import WandbLogger
 import lightning as pl
 from torch.utils.data import random_split
 
 text, labels = load_imdb_data("./data/IMDB Dataset.csv")
+
 
 tokenizer = KanTokenizer()
 tokenizer.ingest_vocab_batch(text=text)
@@ -72,8 +74,9 @@ class KanBertLightning(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
         return optimizer
     
+wandb_logger = WandbLogger(project="kanert")
 model_light = KanBertLightning()
-trainer = pl.Trainer(accelerator="gpu", max_epochs=4)
+trainer = pl.Trainer(accelerator="gpu", max_epochs=4, logger=wandb_logger)
 trainer.fit(model=model_light, 
             train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
