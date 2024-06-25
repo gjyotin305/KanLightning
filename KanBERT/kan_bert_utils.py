@@ -30,7 +30,7 @@ class KanBertEmbeddings(nn.Module):
                  max_pos_embeddings=maxlen) -> None:
         super(KanBertEmbeddings, self).__init__()
         self.word_embeddings = nn.Embedding(vocabulary_size, final_embed_size) 
-        self.pos_embeddings = nn.Embedding(max_pos_embeddings, final_embed_size)
+        self.pos_embeddings = nn.Embedding(max_pos_embeddings+1, final_embed_size)
         self.token_type_embeddings = nn.Embedding(type_vocab_size, final_embed_size)
         self.layer_norm = nn.LayerNorm(final_embed_size, eps=layer_norm_eps)
         self.dropout = nn.Dropout(hidden_dropout_prob)
