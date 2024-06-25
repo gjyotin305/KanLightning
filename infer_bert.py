@@ -16,6 +16,8 @@ text = (
     'Nice meet you too. How are you today?\n'
     'Great. My baseball team won the competition.\n'
     'Oh Congratulations, Juliet\n'
+    'Thanks you Romeo\n'
+    'Oh Congratulations, Juliet\n'
     'Thanks you Romeo'
 )
 
@@ -90,8 +92,6 @@ batch = make_batch()
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = map(torch.LongTensor, zip(*batch))
 
 model = KanBert(vocab_size=vocab_size)
-print(input_ids, segment_ids)
-print(input_ids.shape, segment_ids.shape, masked_pos.shape)
 logits_clsf = model.forward(input_ids, segment_ids)
 
 total_params = sum(p.numel() for p in model.parameters())

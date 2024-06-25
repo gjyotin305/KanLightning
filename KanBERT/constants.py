@@ -1,5 +1,5 @@
 maxlen = 256 # maximum of length
-batch_size = 6
+batch_size = 4
 max_pred = 5  # max tokens of prediction
 n_layers = 6 # number of Encoder of Encoder Layer
 n_heads = 12 # number of heads in Multi-Head Attention
