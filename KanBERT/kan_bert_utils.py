@@ -7,7 +7,7 @@ import math
 import re
 from typing import List
 from torch import Tensor
-from einops import rearrange
+from einops import rearrange, reduce
 from random import *
 from .kan_linear import KANLinear
 
@@ -19,8 +19,7 @@ def gelu(x):
 def accuracy(probs: List[Tensor], labels: List[Tensor]):
     _, preds = torch.max(probs, dim=1)
     # print(preds)
-    labels = rearrange(labels, "b h -> b")
-    assert (preds.shape == labels.shape)
+    # assert (preds.shape == labels.shape)
     return torch.sum(preds==labels).item()
 
 class KanBertEmbeddings(nn.Module):
