@@ -16,7 +16,7 @@ from .constants import *
 class KanBert(nn.Module):
     def __init__(self, vocab_size) -> None:
         super(KanBert, self).__init__()
-        self.embedding = KanBertEmbeddings(vocabulary_size=vocab_size).to("cuda")
+        self.embedding = KanBertEmbeddings(vocabulary_size=vocab_size)
         self.layers = nn.ModuleList([KanBertEncoder() for _ in range(n_layers)])
         self.fc_kan_1 = KANLinear(d_model, d_model)
         self.activ_1 = nn.Tanh()
