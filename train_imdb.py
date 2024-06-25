@@ -48,14 +48,14 @@ class KanBertLightning(pl.LightningModule):
         loss = self.loss(logits_clf, y.to(device))
         pred_logits = self.sigmoid(logits_clf)
 
-        self.log({"train_loss":loss}, 
+        self.log_dict({"train_loss":loss}, 
                  on_epoch=True, 
                  on_step=True, 
                  prog_bar=True)
 
         train_acc = accuracy(pred_logits, y)
 
-        self.log({"train_acc": train_acc},
+        self.log_dict({"train_acc": train_acc},
                 on_epoch=True,
                 prog_bar=True)
         
@@ -68,7 +68,8 @@ class KanBertLightning(pl.LightningModule):
         
         pred_logits = self.sigmoid(logits_clf)
         val_acc = accuracy(pred_logits, labels=y.to(device))
-        self.log({"val_acc": val_acc}, on_epoch=True, prog_bar=True)
+        self.log_dict({"val_acc": val_acc}, 
+                on_epoch=True, on_step=True, prog_bar=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
