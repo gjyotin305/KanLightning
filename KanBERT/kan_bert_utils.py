@@ -19,7 +19,7 @@ def gelu(x):
 def accuracy(probs: List[Tensor], labels: List[Tensor]):
     _, preds = torch.max(probs, dim=1)
     # print(preds)
-    preds = rearrange(preds, "b h -> b h")
+    labels = rearrange(labels, "b h -> b")
     assert (preds.shape == labels.shape)
     return torch.sum(preds==labels).item()
 
