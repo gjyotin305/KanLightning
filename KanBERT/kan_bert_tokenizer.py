@@ -15,16 +15,14 @@ class KanTokenizer:
     
         super().__init__()
         self.max_length = max_length
-        self.vocab_size = vocab_size
-        if vocab_dict:
-            self.vocab_dict = vocab_dict
-        else:
-            self.vocab_dict = initial_dict
-
-        self.vocab_to_id = {w:i for i, w in self.vocab_dict.items()}
+        self.vocab_size = 5
+        self.vocab_dict = initial_dict
+        self.vocab_count = {i: 1 for i, w in initial_dict.items()}
+        self.id_to_vocab = {w:i for i,w in initial_dict.items()}
 
     def encode(self, text: str) -> List[int]:
         split_word = nltk.word_tokenize(text)
+        split_word = [w.lower() for w in split_word]
         final_encode = []
         
         for x in split_word:
@@ -36,10 +34,14 @@ class KanTokenizer:
                     text: str, 
                     return_tensor=True) -> Dict[List[Tensor], List[Tensor]]:
         split_word = nltk.word_tokenize(text)
+        split_word = [w.lower() for w in split_word]
         final_encode = [self.vocab_dict["[CLS]"]]
         
         for x in tqdm(split_word):
-            final_encode.append(self.vocab_dict[x])
+            if x not in self.vocab_dict:
+                final_encode.append(self.vocab_dict["[UNK]"])
+            else:
+                final_encode.append(self.vocab_dict[x])
         
         final_encode.append(self.vocab_dict["[SEP]"])
         
@@ -73,24 +75,19 @@ class KanTokenizer:
         return decode_string 
 
     def ingest_vocab_batch(self, text: List[str]) -> None:
-        check_length = len(self.vocab_dict)
-
-        if check_length > len(initial_dict):
-            for i, x in enumerate(tqdm(text)):
-                split_word = nltk.word_tokenize(x)
-                for y in split_word:
-                    self.vocab_dict[y] = i + check_length
-
-        elif check_length == len(initial_dict):
-
-            for i, x in enumerate(tqdm(text)):
-                split_word = nltk.word_tokenize(x)
-                for y in split_word:
-                    self.vocab_dict[y] = i + len(initial_dict)
-
-        self.vocab_to_id = {w:i for i, w in self.vocab_dict.items()}
-
-        print(f"The length of the vocabulary is {len(self.vocab_dict)}")
+        for x in tqdm(text):
+            split_word = nltk.word_tokenize(x)
+            split_word = [w.lower() for w in split_word]
+            for y in split_word:
+                if y not in self.vocab_dict:
+                    self.vocab_dict[y] = self.vocab_size
+                    self.id_to_vocab[self.vocab_size] = y
+                    self.vocab_count[y] = 1
+                    self.vocab_size += 1
+                else:
+                    self.vocab_count[y] += 1
+            
+        print(f"Vocab size is {len(self.vocab_dict)}")
 
 
     

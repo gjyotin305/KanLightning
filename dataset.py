@@ -31,5 +31,5 @@ class IMDBDataset(Dataset):
 
         return {
             "input": encoding,
-            "label": torch.LongTensor(label)
+            "label": torch.IntTensor([label])
         }
