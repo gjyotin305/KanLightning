@@ -9,5 +9,5 @@ d_ff = 768 * 4
 d_k = d_v = 64
 d_q = d_k
 n_segments = 2
-n_classify = 2
+n_classify = 1
 initial_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3, "[UNK]": 4} 
