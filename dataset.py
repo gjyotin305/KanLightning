@@ -29,7 +29,5 @@ class IMDBDataset(Dataset):
         label = self.labels[idx]
         encoding = self.tokenizer.encode_plus(text)
 
-        return {
-            "input": encoding,
-            "label": torch.IntTensor([label])
-        }
+        return (encoding["input_ids"], 
+                encoding["segment_ids"]), torch.LongTensor([label])

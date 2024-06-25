@@ -94,6 +94,7 @@ input_ids, segment_ids, masked_tokens, masked_pos, isNext = map(torch.LongTensor
 model = KanBert(vocab_size=vocab_size)
 logits_clsf = model.forward(input_ids, segment_ids)
 
+print(logits_clsf.shape)
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Number of parameters: {total_params}")
         
