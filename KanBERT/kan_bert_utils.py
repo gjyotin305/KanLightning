@@ -16,9 +16,9 @@ def gelu(x):
     return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
 def accuracy(probs: List[Tensor], labels: List[Tensor]):
-    preds = torch.max(probs, dim=1)
-    print(preds)
-    # assert (preds.shape == labels.shape)
+    _, preds = torch.max(probs, dim=1)
+    # print(preds)
+    assert (preds.shape == labels.shape)
     return torch.sum(preds==labels).item()
 
 class KanBertEmbeddings(nn.Module):
