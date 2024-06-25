@@ -11,21 +11,24 @@ import torch.optim as optim
 
 
 text = (
-        'Hello, how are you? I am Romeo.\n'
-        'Hello, Romeo My name is Juliet. Nice to meet you.\n'
-        'Nice meet you too. How are you today?\n'
-        'Great. My baseball team won the competition.\n'
-        'Oh Congratulations, Juliet\n'
-        'Thanks you Romeo'
+    'Hello, how are you? I am Romeo.\n'
+    'Hello, Romeo My name is Juliet. Nice to meet you.\n'
+    'Nice meet you too. How are you today?\n'
+    'Great. My baseball team won the competition.\n'
+    'Oh Congratulations, Juliet\n'
+    'Thanks you Romeo'
 )
 
-sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
+sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')
+
+print(sentences)
+
 word_list = list(set(" ".join(sentences).split()))
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
 
-
 for i, w in enumerate(word_list):
     word_dict[w] = i + 4
+
 number_dict = {i: w for i, w in enumerate(word_dict)}
 vocab_size = len(word_dict)
 
@@ -40,6 +43,7 @@ def make_batch():
     positive = negative = 0
     while positive != batch_size/2 or negative != batch_size/2:
         tokens_a_index, tokens_b_index= randrange(len(sentences)), randrange(len(sentences))
+        
         tokens_a, tokens_b= token_list[tokens_a_index], token_list[tokens_b_index]
 
         input_ids = [word_dict['[CLS]']] + tokens_a + [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
@@ -86,11 +90,10 @@ batch = make_batch()
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = map(torch.LongTensor, zip(*batch))
 
 model = KanBert(vocab_size=vocab_size)
-logits_clsf = model.forward(input_ids, segment_ids, masked_pos)
+print(input_ids, segment_ids)
+print(input_ids.shape, segment_ids.shape, masked_pos.shape)
+logits_clsf = model.forward(input_ids, segment_ids)
 
-print(model)
-# print("-><-"*100)
-# print(model_params)
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Number of parameters: {total_params}")
         

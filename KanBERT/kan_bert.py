@@ -23,12 +23,11 @@ class KanBert(nn.Module):
         self.fc_kan_2 = KANLinear(d_model, d_model)
         self.activ_2 = gelu
         self.norm = nn.LayerNorm(d_model)
-        self.classify = nn.Linear(d_model, 2)
+        self.classify = nn.Linear(d_model, n_classify)
 
-    def forward(self, input_ids, segment_ids, masked_pos):
+    def forward(self, input_ids, segment_ids, masked_pos=None):
         output = self.embedding(input_ids, segment_ids)
         enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)
-        # print(enc_self_attn_mask.shape)
         
         for layer in self.layers:
             output, enc_self_attn = layer(output, enc_self_attn_mask)

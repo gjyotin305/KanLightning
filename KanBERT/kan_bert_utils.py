@@ -14,7 +14,13 @@ def gelu(x):
     return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
 class KanBertEmbeddings(nn.Module):
-    def __init__(self, hidden_dropout_prob=0.1, layer_norm_eps=1e-12, type_vocab_size=n_segments, vocabulary_size=30522, final_embed_size=d_model, max_pos_embeddings=maxlen) -> None:
+    def __init__(self, 
+                 hidden_dropout_prob=0.1, 
+                 layer_norm_eps=1e-12, 
+                 type_vocab_size=n_segments, 
+                 vocabulary_size=30522, 
+                 final_embed_size=d_model, 
+                 max_pos_embeddings=maxlen) -> None:
         super(KanBertEmbeddings, self).__init__()
         self.word_embeddings = nn.Embedding(vocabulary_size, final_embed_size) 
         self.pos_embeddings = nn.Embedding(max_pos_embeddings, final_embed_size)
