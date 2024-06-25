@@ -62,7 +62,7 @@ class KanTokenizer:
 
         return {
             "input_ids": torch.LongTensor(final_encode),
-            "segment_ids": torch.Tensor(segment_ids)
+            "segment_ids": torch.LongTensor(segment_ids)
         } 
 
 
