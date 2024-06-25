@@ -6,7 +6,7 @@ from KanBERT.kan_bert import KanBert
 import torch.nn as nn
 import torch
 import wandb
-from KanBERT.constants import device
+from KanBERT.constants import device, maxlen
 from dataset import IMDBDataset, load_imdb_data
 from torch.utils.data import DataLoader
 from lightning.pytorch.loggers import WandbLogger
@@ -16,7 +16,7 @@ from torch.utils.data import random_split
 text, labels = load_imdb_data("./data/IMDB Dataset.csv")
 
 
-tokenizer = KanTokenizer()
+tokenizer = KanTokenizer(max_length=maxlen)
 tokenizer.ingest_vocab_batch(text=text)
 
 dataset_data = IMDBDataset(text=text, labels=labels, tokenizer=tokenizer)
