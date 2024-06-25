@@ -42,8 +42,8 @@ class KanBertLightning(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        logits_clf = self.model.forward(x[0], x[1])
-        loss = self.loss(logits_clf, y)
+        logits_clf = self.model.forward(x[0].to("cuda"), x[1].to("cuda"))
+        loss = self.loss(logits_clf, y.to("cuda"))
         pred_logits = self.sigmoid(logits_clf)
 
         self.log({"train_loss":loss}, 
@@ -62,10 +62,10 @@ class KanBertLightning(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         
-        logits_clf = self.model.forward(x[0], x[1])
+        logits_clf = self.model.forward(x[0].to("cuda"), x[1].to("cuda"))
         
         pred_logits = self.sigmoid(logits_clf)
-        val_acc = accuracy(pred_logits, labels=y)
+        val_acc = accuracy(pred_logits, labels=y.to("cuda"))
         self.log({"val_acc": val_acc}, on_epoch=True, prog_bar=True)
 
     def configure_optimizers(self):
