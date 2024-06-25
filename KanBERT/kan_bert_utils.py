@@ -7,6 +7,7 @@ import math
 import re
 from typing import List
 from torch import Tensor
+from einops import rearrange
 from random import *
 from .kan_linear import KANLinear
 
@@ -18,6 +19,7 @@ def gelu(x):
 def accuracy(probs: List[Tensor], labels: List[Tensor]):
     _, preds = torch.max(probs, dim=1)
     # print(preds)
+    preds = rearrange(preds, "b h -> b h")
     assert (preds.shape == labels.shape)
     return torch.sum(preds==labels).item()
 
