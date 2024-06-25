@@ -44,7 +44,9 @@ class KanBertEmbeddings(nn.Module):
         token_type_embeddings = self.token_type_embeddings(token_type_ids)        
         input_embeds = self.word_embeddings(input_ids)
         pos_embeds = self.pos_embeddings(pos_ids)
-
+        input_embeds.to("cuda")
+        token_type_embeddings.to("cuda")
+        pos_embeds.to("cuda")
         embeddings = input_embeds + token_type_embeddings + pos_embeds
         
         embeddings = self.layer_norm(embeddings)
