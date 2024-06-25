@@ -21,7 +21,8 @@ tokenizer.ingest_vocab_batch(text=text)
 
 dataset_data = IMDBDataset(text=text, labels=labels, tokenizer=tokenizer)
 
-model = KanBert(vocab_size=tokenizer.vocab_size)
+print(tokenizer.vocab_size)
+model = KanBert(vocab_size=len(tokenizer.vocab_dict))
 
 lengths = [int(len(dataset_data)*0.8), int(len(dataset_data)*0.2)]
 train_dataset, val_dataset = random_split(dataset=dataset_data, lengths=lengths)
