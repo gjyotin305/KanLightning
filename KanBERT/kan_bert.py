@@ -12,7 +12,7 @@ from .kan_bert_utils import (
 )
 
 from .constants import *
-
+device = 'cuda'
 class KanBert(nn.Module):
     def __init__(self, vocab_size) -> None:
         super(KanBert, self).__init__()
@@ -26,8 +26,8 @@ class KanBert(nn.Module):
         self.classify = nn.Linear(d_model, n_classify)
 
     def forward(self, input_ids, segment_ids, masked_pos=None):
-        output = self.embedding(input_ids, segment_ids)
-        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)
+        output = self.embedding(input_ids, segment_ids).to(device)
+        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids).to(device)
         
         for layer in self.layers:
             output, enc_self_attn = layer(output, enc_self_attn_mask)

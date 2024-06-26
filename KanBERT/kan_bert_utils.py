@@ -13,6 +13,7 @@ from .kan_linear import KANLinear
 
 from .constants import *
 
+device = 'cuda'
 def gelu(x):
     return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
@@ -74,12 +75,15 @@ class ScaledDotProductAttention(nn.Module):
        return context, attn
 
 class KanBertSelfAttention(nn.Module):
-    def __init__(self, final_embed_size=d_model) -> None:
+    def __init__(self, final_embed_size=d_model, device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")) -> None:
         super(KanBertSelfAttention, self).__init__()
         self.final_embed = final_embed_size
-        self.W_Q = nn.Linear(final_embed_size, d_q* n_heads)
-        self.W_K = nn.Linear(final_embed_size, d_k* n_heads)
-        self.W_V = nn.Linear(final_embed_size, d_v* n_heads)
+        self.device = device
+        self.W_Q = nn.Linear(final_embed_size, d_q* n_heads).to(device)
+        self.W_K = nn.Linear(final_embed_size, d_k* n_heads).to(device)
+        self.W_V = nn.Linear(final_embed_size, d_v* n_heads).to(device)
+        self.linear_layer = nn.Linear(n_heads * d_v, self.final_embed).to(device)
+        self.layer_norm = nn.LayerNorm(self.final_embed).to(device)
 
     def forward(self, Q, K, V, attn_mask):
         residual, batch_size = Q, Q.size(0)
@@ -93,9 +97,9 @@ class KanBertSelfAttention(nn.Module):
         # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
         context = context.transpose(1, 2).contiguous().view(batch_size, -1, n_heads * d_v) # context: [batch_size x len_q x n_heads * d_v]
-        output = nn.Linear(n_heads * d_v, self.final_embed)(context)
+        output = self.linear_layer(context)
 
-        return nn.LayerNorm(self.final_embed)(output + residual), attn
+        return self.layer_norm(output + residual), attn
     
 class KanBertNetPos(nn.Module):
     def __init__(self):
