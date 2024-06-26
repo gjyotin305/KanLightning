@@ -77,9 +77,13 @@ class KanBertLightning(pl.LightningModule):
     
 wandb_logger = WandbLogger(project="kanert")
 model_light = KanBertLightning()
-trainer = pl.Trainer(accelerator="gpu", max_epochs=4, logger=wandb_logger)
+trainer = pl.Trainer(accelerator="gpu", 
+                     max_epochs=100, 
+                     logger=wandb_logger, 
+                     check_val_every_n_epoch=5)
 trainer.fit(model=model_light, 
-            train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+            train_dataloaders=train_dataloader, 
+            val_dataloaders=val_dataloader)
 
                 
 

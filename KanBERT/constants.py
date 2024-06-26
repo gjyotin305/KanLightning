@@ -1,5 +1,5 @@
 maxlen = 256 # maximum of length
-batch_size = 4
+batch_size = 8
 device = "cuda"
 max_pred = 5  # max tokens of prediction
 n_layers = 6 # number of Encoder of Encoder Layer
