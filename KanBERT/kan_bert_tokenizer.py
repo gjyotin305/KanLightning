@@ -56,7 +56,7 @@ class KanTokenizer:
         if len(final_encode) < self.max_length:
             print("Padding")
             final_encode.append(self.vocab_dict["[SEP]"])
-            pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode))
+            pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode) + 1)
             final_encode.extend(pad_extension)
 
         print(len(final_encode), self.max_length + 1)
