@@ -43,18 +43,18 @@ class KanTokenizer:
             else:
                 final_encode.append(self.vocab_dict[x])
         
-        final_encode.append(self.vocab_dict["[SEP]"])
-        
         print(len(final_encode))
 
+        if len(final_encode) == self.max_length:
+            final_encode.append(self.vocab_dict["[SEP]"])
+
         if len(final_encode) > self.max_length:
-            print("Truncation has to take place")
             final_encode = final_encode[:self.max_length]
             final_encode.append(self.vocab_dict["[SEP]"])
 
         if len(final_encode) < self.max_length:
-            print("Padding has to take place.")
-            pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode)+1)
+            final_encode.append(self.vocab_dict["[SEP]"])
+            pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode))
             final_encode.extend(pad_extension)
 
         assert(len(final_encode) == self.max_length + 1)

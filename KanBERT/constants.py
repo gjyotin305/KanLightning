@@ -1,4 +1,4 @@
-maxlen = 257 # maximum of length
+maxlen = 256 # maximum of length
 batch_size = 4
 device = "cuda"
 max_pred = 5  # max tokens of prediction
