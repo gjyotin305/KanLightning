@@ -45,7 +45,7 @@ class KanBertLightning(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits_clf = self.model.forward(x[0].to(device), x[1].to(device))
-        loss = self.loss(logits_clf, y.to(device))
+        loss = self.loss(logits_clf, y.to(device).float())
         pred_logits = self.sigmoid(logits_clf)
 
         self.log_dict({"train_loss":loss}, 
