@@ -37,29 +37,27 @@ class KanTokenizer:
         split_word = [w.lower() for w in split_word]
         final_encode = [self.vocab_dict["[CLS]"]]
         
-        for x in tqdm(split_word):
+        for x in split_word:
             if x not in self.vocab_dict:
                 final_encode.append(self.vocab_dict["[UNK]"])
             else:
                 final_encode.append(self.vocab_dict[x])
         
-        print(len(final_encode))
+        print(f"Initial encoding: {len(final_encode)}")
 
         if len(final_encode) == self.max_length:
             final_encode.append(self.vocab_dict["[SEP]"])
 
         if len(final_encode) > self.max_length:
-            print("Truncation")
             final_encode = final_encode[:self.max_length]
             final_encode.append(self.vocab_dict["[SEP]"])
 
         if len(final_encode) < self.max_length:
-            print("Padding")
             final_encode.append(self.vocab_dict["[SEP]"])
             pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode) + 1)
             final_encode.extend(pad_extension)
 
-        print(len(final_encode), self.max_length + 1)
+        print(f"Final Length is {len(final_encode)}")
         assert(len(final_encode) == self.max_length + 1)
         segment_ids = [0]*len(final_encode)
 
