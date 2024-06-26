@@ -57,6 +57,7 @@ class KanTokenizer:
             pad_extension = [self.vocab_dict["[PAD]"]]*(self.max_length-len(final_encode))
             final_encode.extend(pad_extension)
 
+        print(len(final_encode), self.max_length + 1)
         assert(len(final_encode) == self.max_length + 1)
         segment_ids = [0]*len(final_encode)
 
