@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch
 import wandb
 from KanBERT.constants import device, maxlen
+from einops import rearrange
 from dataset import IMDBDataset, load_imdb_data
 from torch.utils.data import DataLoader
 from torchmetrics import Accuracy
@@ -57,6 +58,7 @@ class KanBertLightning(pl.LightningModule):
                  prog_bar=True)
         
         _, preds = torch.max(pred_logits, dim=1)
+        label = rearrange(y, "b h -> b")
         self.train_acc(preds, y)
 
         return loss
@@ -76,7 +78,8 @@ class KanBertLightning(pl.LightningModule):
 
         val_acc = accuracy(pred_logits, labels=y.to(device))
         _, preds = torch.max(pred_logits, dim=1)
-        self.val_acc(preds, y)
+        label = rearrange(y, "b h -> b")
+        self.val_acc(preds, label)
     
     def on_validation_epoch_end(self) -> None:
         val_acc_end = self.val_acc.compute()
