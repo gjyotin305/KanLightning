@@ -9,6 +9,7 @@ import wandb
 from KanBERT.constants import device, maxlen
 from dataset import IMDBDataset, load_imdb_data
 from torch.utils.data import DataLoader
+from torchmetrics import Accuracy
 from lightning.pytorch.loggers import WandbLogger
 import lightning as pl
 from torch.utils.data import random_split
@@ -39,6 +40,8 @@ class KanBertLightning(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = model
+        self.train_acc = Accuracy()
+        self.val_acc = Accuracy()
         self.sigmoid = nn.Sigmoid()
         self.loss = nn.BCEWithLogitsLoss()
 
@@ -52,24 +55,34 @@ class KanBertLightning(pl.LightningModule):
                  on_epoch=True, 
                  on_step=True, 
                  prog_bar=True)
-
-        train_acc = accuracy(pred_logits, y)
-
-        self.log_dict({"train_acc": train_acc},
-                on_epoch=True,
-                prog_bar=True)
         
-        return loss
+        _, preds = torch.max(pred_logits, dim=1)
+        self.train_acc(preds, y)
 
-    def validation_step(self, batch, batch_idx):
+        return loss
+    
+    def on_train_epoch_end(self) -> None:
+        train_acc_end = self.train_acc.compute()
+        self.log_dict({"train_acc_end": train_acc_end})
+        self.train_acc.reset()
+
+
+    def validation_step(self, batch, batch_idx) -> None:
         x, y = batch
         
         logits_clf = self.model.forward(x[0].to(device), x[1].to(device))
         
         pred_logits = self.sigmoid(logits_clf)
+
         val_acc = accuracy(pred_logits, labels=y.to(device))
-        self.log_dict({"val_acc": val_acc}, 
-                on_epoch=True, on_step=True, prog_bar=True)
+        _, preds = torch.max(pred_logits, dim=1)
+        self.val_acc(preds, y)
+    
+    def on_validation_epoch_end(self) -> None:
+        val_acc_end = self.val_acc.compute()
+        self.log_dict({"val_acc_end": val_acc_end})
+        self.val_acc.reset()
+        
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-5)
