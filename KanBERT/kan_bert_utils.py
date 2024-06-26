@@ -21,7 +21,7 @@ def accuracy(probs: List[Tensor], labels: List[Tensor]):
     preds = torch.round(probs)
     # print(preds)
     # assert (preds.shape == labels.shape)
-    return torch.sum(preds==labels).item()
+    return torch.sum(preds==labels).item()/preds.shape[0]
 
 class KanBertEmbeddings(nn.Module):
     def __init__(self, 
