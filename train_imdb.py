@@ -40,8 +40,8 @@ class KanBertLightning(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = model
-        self.train_acc = Accuracy()
-        self.val_acc = Accuracy()
+        self.train_acc = Accuracy(task="binary")
+        self.val_acc = Accuracy(task="binary")
         self.sigmoid = nn.Sigmoid()
         self.loss = nn.BCEWithLogitsLoss()
 
