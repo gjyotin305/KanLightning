@@ -58,8 +58,8 @@ class KanBertLightning(pl.LightningModule):
                  prog_bar=True)
         
         _, preds = torch.max(pred_logits, dim=1)
-        label = rearrange(y, "b h -> b")
-        self.train_acc(preds, y)
+        label = torch.squeeze(y)
+        self.train_acc(preds, label)
 
         return loss
     
@@ -78,7 +78,7 @@ class KanBertLightning(pl.LightningModule):
 
         val_acc = accuracy(pred_logits, labels=y.to(device))
         _, preds = torch.max(pred_logits, dim=1)
-        label = rearrange(y, "b h -> b")
+        label = torch.squeeze(y)
         self.val_acc(preds, label)
     
     def on_validation_epoch_end(self) -> None:
