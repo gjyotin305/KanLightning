@@ -148,7 +148,9 @@ class KANFormer(nn.Module):
         super().__init__()
         self.embedding = nn.Embedding(vocabulary_size, hidden_size)
         head_dim = hidden_size // num_heads
+        
         rotation_matrix = get_rotation_matrix(head_dim, max_seq_len, 10000)
+        
         self.blocks = nn.ModuleList([
             KANBlock(hidden_size, num_heads, window_size, d_ff, num_experts, n_experts_per_token, rotation_matrix) for _ in range(n_blocks)
         ])

@@ -61,11 +61,17 @@ class KanTokenizer:
         assert(len(final_encode) == self.max_length + 1)
         segment_ids = [0]*len(final_encode)
 
+        print(torch.LongTensor(final_encode).shape)
+
         return {
             "input_ids": torch.LongTensor(final_encode),
             "segment_ids": torch.LongTensor(segment_ids)
         } 
 
+    def encode_transformer(self, 
+                           text: str) -> None:
+        split_word = nltk.word_tokenize(text)
+        split_word = [w.lower() for w in split_word]
 
     def decode(self, text_list: List[int]) -> List[str]:
         decode_string = []
