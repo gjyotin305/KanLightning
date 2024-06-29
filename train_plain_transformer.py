@@ -8,31 +8,39 @@ import torch.nn.functional as F
 from torch import device
 from tqdm import tqdm_notebook
 import numpy as np
+import wandb
 from sklearn.metrics import confusion_matrix
 
+max_len = 199
+
+wandb.init(project="kanert_no_lightning")
+
 # Import the dataset. Use clean_review and label columns
-train_dataset = pd.read_csv('<path>', 
-                            usecols=['clean_review', 'label'])
+train_dataset = pd.read_csv('/home/palashdas/jyotin/.KanBERT/imdb/train_dataset_feat_clean.csv')
 
 # Change columns order
 train_dataset = train_dataset[['clean_review', 'label']]
 
-train_dataset_ok = train_dataset[:40000]
-val_dataset = train_dataset[40000:]
+val_dataset = pd.read_csv('/home/palashdas/jyotin/.KanBERT/imdb/val_dataset_feat_clean.csv')
 
-batch_size = 32
+# Change columns order
+val_dataset = val_dataset[['clean_review', 'label']]
 
-train_iterator = BatchIterator(train_dataset_ok, batch_size=batch_size, vocab_created=False, vocab=None, target_col=None,
+print(val_dataset.head())
+
+batch_size = 64
+
+train_iterator = BatchIterator(train_dataset, batch_size=batch_size, vocab_created=False, vocab=None, target_col=None,
                                word2index=None, sos_token='<SOS>', eos_token='<EOS>', unk_token='<UNK>',
                                pad_token='<PAD>', min_word_count=3, max_vocab_size=None, max_seq_len=0.9,
-                               use_pretrained_vectors=False, glove_path='glove/', glove_name='glove.6B.100d.txt',
-                               weights_file_name='glove/weights.npy')
+                               use_pretrained_vectors=False, glove_path='/home/palashdas/jyotin/.KanBERT/glove/', glove_name='glove.6B.100d.txt',
+                               weights_file_name='/home/palashdas/jyotin/.KanBERT/glove/weights.npy')
 
 val_iterator = BatchIterator(val_dataset, batch_size=batch_size, vocab_created=False, vocab=None, target_col=None,
                              word2index=train_iterator.word2index, sos_token='<SOS>', eos_token='<EOS>',
                              unk_token='<UNK>', pad_token='<PAD>', min_word_count=3, max_vocab_size=None,
-                             max_seq_len=0.9, use_pretrained_vectors=False, glove_path='glove/',
-                             glove_name='glove.6B.100d.txt', weights_file_name='glove/weights.npy')
+                             max_seq_len=0.9, use_pretrained_vectors=False, glove_path='/home/palashdas/jyotin/.KanBERT/glove',
+                             glove_name='glove.6B.100d.txt', weights_file_name='/home/palashdas/jyotin/.KanBERT/glove/weights_val.npy')
 
 
 # Initialize parameters
@@ -47,7 +55,7 @@ pooling = 'max'
 dropout = 0.5
 label_smoothing = 0.1
 learning_rate = 0.001
-epochs = 30
+epochs = 100
 
 # Check whether system supports CUDA
 CUDA = torch.cuda.is_available()
@@ -70,6 +78,9 @@ model.add_loss_fn(loss_fn)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 model.add_optimizer(optimizer)
 
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+model.add_scheduler(scheduler)
+
 device = torch.device('cuda' if CUDA else 'cpu')
 
 model.add_device(device)
@@ -83,28 +94,22 @@ train_losses_list, train_avg_loss_list, train_accuracy_list = [], [], []
 eval_avg_loss_list, eval_accuracy_list, conf_matrix_list = [], [], []
 
 for epoch in range(epochs):
-    
-    try:
-        print('\nStart epoch [{}/{}]'.format(epoch+1, epochs))
 
-        train_losses, train_avg_loss, train_accuracy = model.train_model(train_iterator)
+    print('\nStart epoch [{}/{}]'.format(epoch+1, epochs))
 
-        train_losses_list.append(train_losses)
-        train_avg_loss_list.append(train_avg_loss)
-        train_accuracy_list.append(train_accuracy)
+    train_losses, train_avg_loss, train_accuracy = model.train_model(train_iterator)
 
-        _, eval_avg_loss, eval_accuracy, conf_matrix = model.evaluate_model(val_iterator)
+    train_losses_list.append(train_losses)
+    train_avg_loss_list.append(train_avg_loss)
+    train_accuracy_list.append(train_accuracy)
 
-        eval_avg_loss_list.append(eval_avg_loss)
-        eval_accuracy_list.append(eval_accuracy)
-        conf_matrix_list.append(conf_matrix)
+    _, eval_avg_loss, eval_accuracy = model.evaluate_model(val_iterator)
 
-        print('\nEpoch [{}/{}]: Train accuracy: {:.3f}. Train loss: {:.4f}. Evaluation accuracy: {:.3f}. Evaluation loss: {:.4f}'\
-              .format(epoch+1, epochs, train_accuracy, train_avg_loss, eval_accuracy, eval_avg_loss))
+    eval_avg_loss_list.append(eval_avg_loss)
+    eval_accuracy_list.append(eval_accuracy)
+    # conf_matrix_list.append(conf_matrix)
 
+    print('\nEpoch [{}/{}]: Train accuracy: {:.3f}. Train loss: {:.4f}. Evaluation accuracy: {:.3f}. Evaluation loss: {:.4f}'\
+            .format(epoch+1, epochs, train_accuracy, train_avg_loss, eval_accuracy, eval_avg_loss))
 
-        if early_stop.stop(eval_avg_loss, model, delta=0.003):
-            break
-        
-    except Exception as e:
-        print(f"Error encountered : {e}")
+    wandb.log({"train_loss": train_avg_loss, "train_acc": train_accuracy, "eval_acc": eval_accuracy, "eval_loss": eval_avg_loss})

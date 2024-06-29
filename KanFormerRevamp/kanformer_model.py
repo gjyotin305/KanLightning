@@ -5,7 +5,9 @@ import torch
 import numpy as np
 import torch.nn as nn
 from tqdm import tqdm
+from .kanformer_lkan import KANLinear
 import torch.nn.functional as F
+
 class MultiHeadAttention(nn.Module):
     """Implementation of the Multi-Head-Attention.
         
@@ -108,7 +110,7 @@ class PositionalEncoding(nn.Module):
         
         # Create pos_encoding, positions and dimensions matrices
         # with a shape of (max_len, dmodel)
-        self.pos_encoding = torch.zeros(max_len, dmodel)
+        self.pos_encoding = torch.zeros(max_len, dmodel).to("cuda")
         positions = torch.repeat_interleave(torch.arange(float(max_len)).unsqueeze(1), dmodel, dim=1)
         dimensions = torch.arange(float(dmodel)).repeat(max_len, 1)
                                   
@@ -144,6 +146,7 @@ class PositionalEncoding(nn.Module):
         
         # embedd shape (batch_size, seq_length, embedding_dim)
         # pos_encoding shape (1, max_len, dmodel = embedd_dim)
+        embedd = embedd.to("cuda")
         embedd = embedd + self.pos_encoding[:, :embedd.size(1), :]
         embedd = self.dropout(embedd)
         
@@ -211,11 +214,11 @@ class LabelSmoothingLoss(nn.Module):
         """
         # Create a Tensor of targets probabilities of a shape that equals 'pred' dimensions, filled all
         # with label_smoothing/(output_size-1) value that will correspond to the wrong label probability.
-        one_hot_probs = torch.full(size=pred.size(), fill_value=self.label_smoothing/(self.output_size - 1))
+        one_hot_probs = torch.full(size=pred.size(), fill_value=self.label_smoothing/(self.output_size - 1)).to("cuda")
         
         # Fill the tensor at positions that correspond to the true label from the target vector (0/1)
         # with the modified value of maximum probability (confidence).
-        one_hot_probs.scatter_(1, target.unsqueeze(1), self.confidence)
+        one_hot_probs.scatter_(1, target.unsqueeze(1).to("cuda"), self.confidence)
             
         # KLDivLoss takes inputs (pred) that contain log-probs and targets given as probs (one_hot_probs).
         return self.criterion(pred, one_hot_probs)    
@@ -251,10 +254,10 @@ class TransformerBlock(nn.Module):
         self.layer_norm2 = nn.LayerNorm(dmodel)
         
         self.ffnn = nn.Sequential(
-                nn.Linear(dmodel, ffnn_hidden_size),
+                KANLinear(dmodel, ffnn_hidden_size),
                 nn.ReLU(),
                 nn.Dropout(dropout),
-                nn.Linear(ffnn_hidden_size, dmodel))
+                KANLinear(ffnn_hidden_size, dmodel))
         
         
     def forward(self, inputs):
@@ -330,7 +333,7 @@ class Transformer(nn.Module):
             
         self.tnf_blocks = nn.Sequential(*self.tnf_blocks)
             
-        self.linear = nn.Linear(dmodel, output_size)
+        self.linear = KANLinear(dmodel, output_size)
         
         
     def forward(self, inputs, input_lengths):
@@ -349,7 +352,7 @@ class Transformer(nn.Module):
             Logarithm of softmaxed class tensor.
         """
         self.batch_size = inputs.size(0)
-        
+        inputs = inputs.to("cuda")
         # Input dimensions (batch_size, seq_length, dmodel)
         output = self.embedding(inputs)
         output = self.pos_encoding(output)
@@ -383,8 +386,11 @@ class Transformer(nn.Module):
         """
         self.optimizer = optimizer
         
+    def add_scheduler(self, scheduler):
+
+        self.scheduler = scheduler
         
-    def add_device(self, device=torch.device('cpu')):
+    def add_device(self, device=torch.device('cuda')):
         """Specify the device.
         
         """
@@ -440,7 +446,7 @@ class Transformer(nn.Module):
                 batch_correct += (pred.cpu() == target.cpu()).sum().item()
 
             else:
-                batch_correct += (pred == target).sum().item()
+                batch_correct += (pred.cpu() == target).sum().item()
 
             num_seq += len(input_seq)     
     
@@ -457,6 +463,8 @@ class Transformer(nn.Module):
                 
             avg_loss = np.mean(losses_list)
             accuracy = batch_correct / num_seq
+        
+        self.scheduler.step()
                               
         return train_losses, avg_loss, accuracy
     
@@ -512,12 +520,12 @@ class Transformer(nn.Module):
                     batch_correct += (pred.cpu() == target.cpu()).sum().item()
                     
                 else:
-                    batch_correct += (pred == target).sum().item()
+                    batch_correct += (pred.cpu() == target).sum().item()
                     
                 num_seq += len(input_seq)     
                 
-                pred_total = torch.cat([pred_total, pred], dim=0)
-                target_total = torch.cat([target_total, target], dim=0)
+                pred_total = torch.cat([pred_total.cpu(), pred.cpu()], dim=0)
+                target_total = torch.cat([target_total.cpu(), target.cpu()], dim=0)
                 
                 if i % 100 == 0:
                     avg_batch_eval_loss = np.mean(losses)

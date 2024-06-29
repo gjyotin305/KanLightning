@@ -3,6 +3,19 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#wandb logs
+wandb/
+
+#pytorch weights
+*.pt
+
+#nohup
+
+*.out
+
+#project
+kanert/
+
 # C extensions
 *.so
 
